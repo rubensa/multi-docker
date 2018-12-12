@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t rubensa/react-test -f ./client/Dockerfile.dev .
+
+script:
+  - docker run rubensa/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t rubensa/multi-client ./client
+  - docker build -t rubensa/multi-nginx ./nginx
+  - docker build -t rubensa/multi-server ./server
+  - docker build -t rubensa/multi-worker ./worker
+  # Log in docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Put images on Docker Hub
+  - docker push rubensa/multi-client
+  - docker push rubensa/multi-nginx
+  - docker push rubensa/multi-server
+  - docker push rubensa/multi-worker
+
